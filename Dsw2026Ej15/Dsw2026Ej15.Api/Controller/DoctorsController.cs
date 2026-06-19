@@ -8,20 +8,16 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Dsw2026Ej15.Api.Controller;
 
-[ApiController]
-[Route("api/doctors")]
-
-
 public class DoctorsController : AppController
 {
     private readonly IPersistence _persistence;
 
     public DoctorsController(IPersistence persistence)
     {
-        this._persistence = persistence;
+        _persistence = persistence;
     }
 
-    [HttpPost("doctors")]
+    [HttpPost]
     public async Task<IActionResult> CreateDoctor(DoctorModel.Request request)
     {
         if (string.IsNullOrWhiteSpace(request.Name) ||
@@ -47,6 +43,31 @@ public class DoctorsController : AppController
         var ActiveDoctors = _persistence.GetActiveDoctors();
         return Ok(ActiveDoctors);
     }
-    
 
+    [HttpGet("{id:guid}")]
+    public IActionResult GetDoctorById(Guid id)
+    {
+        var doctor = _persistence.GetActiveDoctorById(id);
+        if(doctor is null)
+        {
+            return NotFound();
+        }
+
+        var response = new DoctorModel.Response(doctor.Id, doctor.Name, doctor.LicenseNumber, doctor.Speciality.Name);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteDoctor(Guid id)
+    {
+        var doctor = _persistence.GetActiveDoctorById(id);
+        if(doctor is null)
+        {
+            return NotFound();
+        }
+
+        doctor.Deactivate();
+        return NoContent();
+    }
 }
