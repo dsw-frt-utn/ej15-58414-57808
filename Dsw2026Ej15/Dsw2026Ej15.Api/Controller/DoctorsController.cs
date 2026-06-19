@@ -5,6 +5,7 @@ using Dsw2026Ej15.Api.Models;
 using Dsw2026Ej15.Domain.Entities;
 using Dsw2026Ej15.Domain.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Dsw2026Ej15.Domain.Exceptions;
 
 namespace Dsw2026Ej15.Api.Controller;
 
@@ -23,13 +24,13 @@ public class DoctorsController : AppController
         if (string.IsNullOrWhiteSpace(request.Name) ||
             string.IsNullOrWhiteSpace(request.LicenseNumber))
         {
-            return BadRequest("Nombre y matricula son requeridos");
+            throw new ValidationException("Nombre y matricula son requeridos");
         }
 
         var speciality = _persistence.GetSpecialityById(request.SpecialityId);
         if (speciality is null)
         {
-            return BadRequest("Especialidad no Existe");
+            throw new ValidationException("Especialidad no Existe");
         }
 
         var doctor = new Doctor(request.Name, request.LicenseNumber, speciality);
@@ -50,7 +51,7 @@ public class DoctorsController : AppController
         var doctor = _persistence.GetActiveDoctorById(id);
         if(doctor is null)
         {
-            return NotFound();
+            throw new ValidationException("El medico no existe o no esta activo.");
         }
 
         var response = new DoctorModel.Response(doctor.Id, doctor.Name, doctor.LicenseNumber, doctor.Speciality.Name);
@@ -64,7 +65,7 @@ public class DoctorsController : AppController
         var doctor = _persistence.GetActiveDoctorById(id);
         if(doctor is null)
         {
-            return NotFound();
+            throw new ValidationException("El medico no existe o no esta activo.");
         }
 
         doctor.Deactivate();
