@@ -18,7 +18,7 @@ public class DoctorsController : AppController
         _persistence = persistence;
     }
 
-    [HttpPost]
+    [HttpPost()]
     public async Task<IActionResult> CreateDoctor(DoctorModel.Request request)
     {
         if (string.IsNullOrWhiteSpace(request.Name) ||
@@ -38,7 +38,7 @@ public class DoctorsController : AppController
         return Created();
     }
 
-    [HttpGet]
+    [HttpGet()]
     public IActionResult GetActiveDoctors()
     {
         var ActiveDoctors = _persistence.GetActiveDoctors();
