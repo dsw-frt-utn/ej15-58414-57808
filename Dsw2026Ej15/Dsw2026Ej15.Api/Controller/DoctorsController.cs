@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Dsw2026Ej15.Domain;
-using System;
 using Dsw2026Ej15.Api.Models;
 using Dsw2026Ej15.Domain.Entities;
 using Dsw2026Ej15.Domain.Interfaces;
@@ -27,48 +25,49 @@ public class DoctorsController : AppController
             throw new ValidationException("Nombre y matricula son requeridos");
         }
 
-        var speciality = _persistence.GetSpecialityById(request.SpecialityId);
+        var speciality = await _persistence.GetSpecialityById(request.SpecialityId);
         if (speciality is null)
         {
             throw new ValidationException("Especialidad no Existe");
         }
 
         var doctor = new Doctor(request.Name, request.LicenseNumber, speciality);
-        _persistence.SaveDoctor(doctor);
+        await _persistence.SaveDoctor(doctor);
         return Created();
     }
 
     [HttpGet()]
-    public IActionResult GetActiveDoctors()
+    public async Task<IActionResult> GetActiveDoctors()
     {
-        var ActiveDoctors = _persistence.GetActiveDoctors();
-        return Ok(ActiveDoctors);
+        var activeDoctors = await _persistence.GetActiveDoctors();
+        return Ok(activeDoctors.Select(d => new DoctorModel.Response(d.Id, d.Name, d.LicenseNumber, d.Speciality?.Name)));
     }
 
     [HttpGet("{id:guid}")]
-    public IActionResult GetDoctorById(Guid id)
+    public async Task<IActionResult> GetDoctorById(Guid id)
     {
-        var doctor = _persistence.GetActiveDoctorById(id);
+        var doctor = await _persistence.GetActiveDoctorById(id);
         if(doctor is null)
         {
             throw new ValidationException("El medico no existe o no esta activo.");
         }
 
-        var response = new DoctorModel.Response(doctor.Id, doctor.Name, doctor.LicenseNumber, doctor.Speciality.Name);
+        var response = new DoctorModel.Response(doctor.Id, doctor.Name, doctor.LicenseNumber, doctor.Speciality?.Name);
 
         return Ok(response);
     }
 
     [HttpDelete("{id:guid}")]
-    public IActionResult DeleteDoctor(Guid id)
+    public async Task<IActionResult> DeleteDoctor(Guid id)
     {
-        var doctor = _persistence.GetActiveDoctorById(id);
+        var doctor = await _persistence.GetActiveDoctorById(id);
         if(doctor is null)
         {
             throw new ValidationException("El medico no existe o no esta activo.");
         }
 
         doctor.Deactivate();
+        await _persistence.UpdateDoctor(doctor);
         return NoContent();
     }
 }
